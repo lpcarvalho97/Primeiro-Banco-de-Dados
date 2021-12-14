@@ -1,0 +1,462 @@
+
+                                                                          /*  CONSTRUÇÃO DO DATABASE (SA 1): */
+
+
+-- MySQL Workbench Forward Engineering
+
+SET @OLD_UNIQUE_CHECKS=@@UNIQUE_CHECKS, UNIQUE_CHECKS=0;
+SET @OLD_FOREIGN_KEY_CHECKS=@@FOREIGN_KEY_CHECKS, FOREIGN_KEY_CHECKS=0;
+SET @OLD_SQL_MODE=@@SQL_MODE, SQL_MODE='ONLY_FULL_GROUP_BY,STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION';
+
+-- -----------------------------------------------------
+-- Schema fifanovo
+-- -----------------------------------------------------
+
+-- -----------------------------------------------------
+-- Schema fifanovo
+-- -----------------------------------------------------
+CREATE SCHEMA IF NOT EXISTS `fifanovo` DEFAULT CHARACTER SET utf8 ;
+USE `fifanovo` ;
+
+-- -----------------------------------------------------
+-- Table `fifanovo`.`time`
+-- -----------------------------------------------------
+CREATE TABLE IF NOT EXISTS `fifanovo`.`time` (
+  `nomedoTime` VARCHAR(45),
+  PRIMARY KEY (`nomedoTime`))
+ENGINE = InnoDB;
+
+
+-- -----------------------------------------------------
+-- Table `fifanovo`.`resultado`
+-- -----------------------------------------------------
+CREATE TABLE IF NOT EXISTS `fifanovo`.`resultado` (
+  `idResultado` TINYINT AUTO_INCREMENT,
+  `numerodaPartida` TINYINT,
+  `placar` VARCHAR(45) DEFAULT '0 x 0',
+  `timePerdedor` VARCHAR(45),
+  `timeVencedor` VARCHAR(45),
+  PRIMARY KEY (`idResultado`))
+ENGINE = InnoDB;
+
+
+-- -----------------------------------------------------
+-- Table `fifanovo`.`estadio`
+-- -----------------------------------------------------
+CREATE TABLE IF NOT EXISTS `fifanovo`.`estadio` (
+  `nomeEstadio` VARCHAR(45),
+  `numerodaPartida` TINYINT,
+  `publicoMaximo` INT,
+  `estadiocol` VARCHAR(45),
+  PRIMARY KEY (`nomeEstadio`))
+ENGINE = InnoDB;
+
+
+-- -----------------------------------------------------
+-- Table `fifanovo`.`partida`
+-- -----------------------------------------------------
+CREATE TABLE IF NOT EXISTS `fifanovo`.`partida` (
+  `numeroPartida` TINYINT AUTO_INCREMENT,
+  `arbitro` VARCHAR(45),
+  `publico` INT,
+  `resultado_idResultado` TINYINT,
+  `estadio_nomeEstadio` VARCHAR(45),
+  PRIMARY KEY (`numeroPartida`),
+  INDEX `fk_partida_resultado1_idx` (`resultado_idResultado` ASC) VISIBLE,
+  INDEX `fk_partida_estadio1_idx` (`estadio_nomeEstadio` ASC) VISIBLE,
+  CONSTRAINT `fk_partida_resultado1`
+    FOREIGN KEY (`resultado_idResultado`)
+    REFERENCES `fifanovo`.`resultado` (`idResultado`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION,
+  CONSTRAINT `fk_partida_estadio1`
+    FOREIGN KEY (`estadio_nomeEstadio`)
+    REFERENCES `fifanovo`.`estadio` (`nomeEstadio`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION)
+ENGINE = InnoDB;
+
+
+-- -----------------------------------------------------
+-- Table `fifanovo`.`jogadores`
+-- -----------------------------------------------------
+CREATE TABLE IF NOT EXISTS `fifanovo`.`jogadores` (
+  `idJogadores` TINYINT AUTO_INCREMENT,
+  `nomeJogador` VARCHAR(45),
+  `reservas` VARCHAR(45),
+  `titulares` VARCHAR(45),
+  `time_nomedoTime` VARCHAR(45),
+  `partida_numeroPartida` TINYINT,
+  PRIMARY KEY (`idJogadores`),
+  INDEX `fk_jogadores_time1_idx` (`time_nomedoTime` ASC) VISIBLE,
+  INDEX `fk_jogadores_partida1_idx` (`partida_numeroPartida` ASC) VISIBLE,
+  CONSTRAINT `fk_jogadores_time1`
+    FOREIGN KEY (`time_nomedoTime`)
+    REFERENCES `fifanovo`.`time` (`nomedoTime`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION,
+  CONSTRAINT `fk_jogadores_partida1`
+    FOREIGN KEY (`partida_numeroPartida`)
+    REFERENCES `fifanovo`.`partida` (`numeroPartida`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION)
+ENGINE = InnoDB;
+
+
+-- -----------------------------------------------------
+-- Table `fifanovo`.`penalizacoes`
+-- -----------------------------------------------------
+CREATE TABLE IF NOT EXISTS `fifanovo`.`penalizacoes` (
+  `idpenalizacoes` TINYINT AUTO_INCREMENT,
+  `arbitro` VARCHAR(45),
+  `cartaoAmarelo` TINYINT DEFAULT 0,
+  `cartaoVermelho` TINYINT DEFAULT 0,
+  `time_nomedoTime` VARCHAR(45),
+  `jogadores_idJogadores` TINYINT,
+  PRIMARY KEY (`idpenalizacoes`),
+  INDEX `fk_penalizacoes_time1_idx` (`time_nomedoTime` ASC) VISIBLE,
+  INDEX `fk_penalizacoes_jogadores1_idx` (`jogadores_idJogadores` ASC) VISIBLE,
+  CONSTRAINT `fk_penalizacoes_time1`
+    FOREIGN KEY (`time_nomedoTime`)
+    REFERENCES `fifanovo`.`time` (`nomedoTime`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION,
+  CONSTRAINT `fk_penalizacoes_jogadores1`
+    FOREIGN KEY (`jogadores_idJogadores`)
+    REFERENCES `fifanovo`.`jogadores` (`idJogadores`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION)
+ENGINE = InnoDB;
+
+
+-- -----------------------------------------------------
+-- Table `fifanovo`.`patrocinador`
+-- -----------------------------------------------------
+CREATE TABLE IF NOT EXISTS `fifanovo`.`patrocinador` (
+  `cnpj` INT,
+  `nomePatrocinador` VARCHAR(45),
+  `subvencao` INT,
+  `partida_numeroPartida` TINYINT,
+  PRIMARY KEY (`cnpj`),
+  INDEX `fk_patrocinador_partida1_idx` (`partida_numeroPartida` ASC) VISIBLE,
+  CONSTRAINT `fk_patrocinador_partida1`
+    FOREIGN KEY (`partida_numeroPartida`)
+    REFERENCES `fifanovo`.`partida` (`numeroPartida`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION)
+ENGINE = InnoDB;
+
+
+-- -----------------------------------------------------
+-- Table `fifanovo`.`substituicao`
+-- -----------------------------------------------------
+CREATE TABLE IF NOT EXISTS `fifanovo`.`substituicao` (
+  `idSubstituicao` TINYINT AUTO_INCREMENT,
+  `idJogadorEntrou` TINYINT,
+  `idJogadorSaiu` TINYINT,
+  `partida_numeroPartida` TINYINT,
+  PRIMARY KEY (`idSubstituicao`),
+  INDEX `fk_substituicao_partida1_idx` (`partida_numeroPartida` ASC) VISIBLE,
+  CONSTRAINT `fk_substituicao_partida1`
+    FOREIGN KEY (`partida_numeroPartida`)
+    REFERENCES `fifanovo`.`partida` (`numeroPartida`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION)
+ENGINE = InnoDB;
+
+
+-- -----------------------------------------------------
+-- Table `fifanovo`.`time_has_partida`
+-- -----------------------------------------------------
+CREATE TABLE IF NOT EXISTS `fifanovo`.`time_has_partida` (
+  `time_nomedoTime` VARCHAR(45),
+  `partida_numeroPartida` TINYINT,
+  PRIMARY KEY (`time_nomedoTime`, `partida_numeroPartida`),
+  INDEX `fk_time_has_partida_partida1_idx` (`partida_numeroPartida` ASC) VISIBLE,
+  INDEX `fk_time_has_partida_time_idx` (`time_nomedoTime` ASC) VISIBLE,
+  CONSTRAINT `fk_time_has_partida_time`
+    FOREIGN KEY (`time_nomedoTime`)
+    REFERENCES `fifanovo`.`time` (`nomedoTime`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION,
+  CONSTRAINT `fk_time_has_partida_partida1`
+    FOREIGN KEY (`partida_numeroPartida`)
+    REFERENCES `fifanovo`.`partida` (`numeroPartida`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION)
+ENGINE = InnoDB;
+
+
+SET SQL_MODE=@OLD_SQL_MODE;
+SET FOREIGN_KEY_CHECKS=@OLD_FOREIGN_KEY_CHECKS;
+SET UNIQUE_CHECKS=@OLD_UNIQUE_CHECKS;
+
+
+INSERT INTO time (nomedoTime) VALUES 
+('Brasil'),
+('Argentina'),
+('França'),
+('Holanda'),
+('Portugal');
+
+INSERT INTO jogadores (nomeJogador, reservas, titulares, time_nomedoTime)
+VALUES ('Cristiano Araújo', 'não', 'sim','Brasil');
+
+INSERT INTO jogadores (nomeJogador, reservas, titulares, time_nomedoTime)
+VALUES 
+('Garcia Lopez', 'não', 'sim','Argentina'),
+('Emanoel Macron', 'não', 'sim','França'),
+('Dr. Van Helsing', 'não', 'sim','Holanda'),
+('Dom Joao', 'não', 'sim','Portugal');
+
+INSERT INTO jogadores (nomeJogador, reservas, titulares, time_nomedoTime)
+VALUES 
+('Fabio Assuncao', 'sim', 'não','Brasil'),
+('Leonardo Macri', 'sim', 'não','Argentina'),
+('Maria Antonieta', 'sim', 'não','França'),
+('Vhan Dhaime', 'sim', 'não','Holanda'),
+('Marques de Pombal', 'sim', 'não','Portugal');
+
+INSERT INTO partida (arbitro, publico)
+VALUES ('João Miranda', '50000');
+
+INSERT INTO partida (arbitro, publico)
+VALUES ('Maria Leopoldina', '28000'),
+('Elvis Presley', '14000'),
+('David Sottermann', '15000');
+
+ALTER TABLE estadio
+DROP COLUMN estadiocol;
+
+INSERT INTO estadio (nomeEstadio, numerodaPartida, publicoMaximo)
+VALUES 
+('Orlando Scarpeli', '1', '58000'),
+('Elefante Branco', '2', '25000'),
+('La Dernière Fois', '3', '44500'),
+('The Old Stadium', '4', '17000'),
+('I Due Lupi', '5', '31000');
+
+INSERT INTO patrocinador (cnpj, nomePatrocinador, subvencao)
+VALUES 
+('0123456', 'Imperio do Brasil', '450000'),
+('6543210', 'Cuca S.A.', '785342'),
+('5463897', 'Tribo Tapajos', '12540');
+
+INSERT INTO penalizacoes (arbitro, cartaoAmarelo, cartaoVermelho, time_nomedoTime, jogadores_idJogadores)
+VALUES
+('Joao Miranda', '0', '1', 'França', '4'),
+('Joao Miranda', '0', '1', 'França', '9'),
+('David Sottermann', '1', '1', 'Argentina', '3');
+
+INSERT INTO resultado (numerodaPartida, placar, timePerdedor, timeVencedor)
+VALUES ('1', '3 x 0', 'Argentina', 'Brasil');
+
+INSERT INTO resultado (numerodaPartida, placar, timePerdedor, timeVencedor)
+VALUES ('2', '2 x 1', 'França', 'Argentina'),
+('3', '1 x 0', 'Holanda', 'Portugal'),
+('4', '2 x 1', 'Holanda', 'Brasil');
+
+INSERT INTO substituicao (idJogadorEntrou, idJogadorSaiu, partida_numeroPartida)
+VALUES 
+('7', '2', '1'),
+('9', '4', '2');
+
+INSERT INTO `fifanovo`.`time_has_partida` (`time_nomedoTime`, `partida_numeroPartida`) VALUES ('Brasil', '1');
+INSERT INTO `fifanovo`.`time_has_partida` (`time_nomedoTime`, `partida_numeroPartida`) VALUES ('Brasil', '4');
+INSERT INTO `fifanovo`.`time_has_partida` (`time_nomedoTime`, `partida_numeroPartida`) VALUES ('Argentina', '1');
+INSERT INTO `fifanovo`.`time_has_partida` (`time_nomedoTime`, `partida_numeroPartida`) VALUES ('Argentina', '2');
+INSERT INTO `fifanovo`.`time_has_partida` (`time_nomedoTime`, `partida_numeroPartida`) VALUES ('Franca', '2');
+INSERT INTO `fifanovo`.`time_has_partida` (`time_nomedoTime`, `partida_numeroPartida`) VALUES ('Holanda', '3');
+INSERT INTO `fifanovo`.`time_has_partida` (`time_nomedoTime`, `partida_numeroPartida`) VALUES ('Holanda', '4');
+INSERT INTO `fifanovo`.`time_has_partida` (`time_nomedoTime`, `partida_numeroPartida`) VALUES ('Portugal', '3');
+
+USE fifanovo;
+
+
+
+SELECT * FROM time;
+
+
+SELECT * FROM jogadores;
+
+
+
+
+SELECT * FROM jogadores;
+
+
+
+SELECT arbitro FROM partida;
+
+
+
+SELECT * FROM estadio WHERE publicoMaximo > '30000';
+
+
+
+
+
+
+                                                        /* ALTERAÇÕES NO SQL SA 2 PARTE 1*/ 
+
+
+
+ALTER TABLE partida ADD COLUMN impedimento TINYINT,
+ADD COLUMN penalti TINYINT,
+ADD COLUMN escanteio TINYINT;
+
+ALTER TABLE partida ADD COLUMN fase TINYINT;
+
+ALTER TABLE penalizacoes ADD COLUMN faltasCometidas TINYINT,
+ADD COLUMN faltasSofridas TINYINT,
+ADD COLUMN expulsãoSegundoAmarelo ENUM ('S', 'N');
+
+CREATE TABLE IF NOT EXISTS sensor (
+idMapeamento INT AUTO_INCREMENT,
+chutesdirecaoGol TINYINT,
+numerodaPartida TINYINT,
+golContra TINYINT,
+idSensor TINYINT,
+golsApurados TINYINT,
+relogioSensor TIME,
+gpsSensor VARCHAR(30),
+chutes TINYINT,
+PRIMARY KEY (idMapeamento)
+);
+
+ALTER TABLE sensor
+DROP COLUMN numerodaPartida;
+
+ALTER TABLE sensor
+ADD COLUMN numeroPartida TINYINT;
+
+ALTER TABLE sensor
+ADD CONSTRAINT numeroPartida
+FOREIGN KEY (numeroPartida)
+REFERENCES partida (numeroPartida);
+
+ALTER TABLE sensor
+ADD COLUMN nomedoTime VARCHAR(45);
+
+ALTER TABLE sensor
+ADD CONSTRAINT nomedoTime
+FOREIGN KEY (nomedoTime)
+REFERENCES time(nomedoTime);
+
+ALTER TABLE partida
+MODIFY COLUMN arbitro VARCHAR(45) UNIQUE;
+
+ALTER TABLE penalizacoes
+ADD CONSTRAINT arbitro
+FOREIGN KEY (arbitro)
+REFERENCES partida(arbitro);
+
+UPDATE `fifanovo`.`sensor` SET `chutesdirecaoGol` = '55', 
+`golContra` = '0', `idSensor` = '1', `golsApurados` = '3', 
+`relogioSensor` = '3333', `gpsSensor` = '5x 9y', 
+`chutes` = '55', `numeroPartida` = '1' WHERE 
+(`idMapeamento` = '1');
+
+UPDATE `fifanovo`.`partida` SET `resultado_idResultado` = '1', `impedimento` = '5', `penalti` = '6', `escanteio` = '15', `fase` = '1' WHERE (`numeroPartida` = '1');
+
+UPDATE `fifanovo`.`partida` SET `resultado_idResultado` = '1', `impedimento` = '5', `penalti` = '6', `escanteio` = '15', `fase` = '1' WHERE (`numeroPartida` = '1');
+
+INSERT INTO `fifanovo`.`penalizacoes` (`idpenalizacoes`, `arbitro`, `cartaoAmarelo`, `cartaoVermelho`, `time_nomedoTime`, `jogadores_idJogadores`, `faltasCometidas`,
+`faltasSofridas`, `expulsãoSegundoAmarelo`) VALUES ('4', 'Maria Leopoldina', '0', '0', 'Brasil', '2', '0', '10', '0');
+
+UPDATE `fifanovo`.`penalizacoes` SET `expulsãoSegundoAmarelo` = 'N' WHERE (`idpenalizacoes` = '4');
+
+UPDATE `fifanovo`.`penalizacoes` SET `faltasCometidas` = '55', `faltasSofridas` = '0', `expulsãoSegundoAmarelo` = 'S' WHERE (`idpenalizacoes` = '3');
+
+INSERT INTO `fifanovo`.`sensor` (`idMapeamento`, `chutesdirecaoGol`, `golContra`, `idSensor`, `golsApurados`, `relogioSensor`, `gpsSensor`, `chutes`,
+`numeroPartida`, `nomedoTime`) VALUES ('2', '15', '1', '2', '0', '1200', '4x 8y', '20', '1', 'Argentina');
+
+UPDATE `fifanovo`.`sensor` SET `numeroPartida` = '2' WHERE (`idMapeamento` = '2');
+
+UPDATE `fifanovo`.`partida` SET `resultado_idResultado` = '2', `estadio_nomeEstadio` = 'Orlando Scarpeli', `impedimento` = '3', `penalti` = '2', `escanteio` = '9', `fase` = '1' WHERE (`numeroPartida` = '2');
+UPDATE `fifanovo`.`partida` SET `estadio_nomeEstadio` = 'Orlando Scarpeli' WHERE (`numeroPartida` = '1');
+
+INSERT INTO `fifanovo`.`partida` (`numeroPartida`, `arbitro`) VALUES ('5', 'Ghengis Khan');
+
+INSERT INTO `fifanovo`.`sensor` (`idMapeamento`, `chutesdirecaoGol`, `golContra`, `idSensor`, `golsApurados`, `relogioSensor`, `gpsSensor`, `chutes`, `numeroPartida`, `nomedoTime`) VALUES ('3', '26', '0', '3', '2', '4500', '8y 9x', '34', '3', 'Franca');
+INSERT INTO `fifanovo`.`sensor` (`idMapeamento`, `chutesdirecaoGol`, `golContra`, `idSensor`, `golsApurados`, `relogioSensor`, `gpsSensor`, `chutes`, `numeroPartida`, `nomedoTime`) VALUES ('4', '30', '0', '4', '1', '3300', '3x 5y', '42', '4', 'Holanda');
+INSERT INTO `fifanovo`.`sensor` (`idMapeamento`, `chutesdirecaoGol`, `golContra`, `idSensor`, `golsApurados`, `relogioSensor`, `gpsSensor`, `chutes`, `numeroPartida`, `nomedoTime`) VALUES ('5', '25', '0', '5', '0', '2945', '1x 4y', '35', '5', 'Portugal');
+
+UPDATE `fifanovo`.`partida` SET `impedimento` = '8', `penalti` = '3', `escanteio` = '5', `fase` = '1' WHERE (`numeroPartida` = '5');
+
+UPDATE `fifanovo`.`penalizacoes` SET `time_nomedoTime` = 'Holanda', `faltasCometidas` = '5', `faltasSofridas` = '6', `expulsãoSegundoAmarelo` = 'S' WHERE (`idpenalizacoes` = '2');
+
+
+UPDATE `fifanovo`.`partida` SET `resultado_idResultado` = '3', `estadio_nomeEstadio` = 'I Due Lupi', `impedimento` = '2', `penalti` = '0', `escanteio` = '5', `fase` = '1' WHERE (`numeroPartida` = '3');
+UPDATE `fifanovo`.`partida` SET `resultado_idResultado` = '4', `estadio_nomeEstadio` = 'I Due Lupi', `impedimento` = '3', `penalti` = '1', `escanteio` = '2', `fase` = '1' WHERE (`numeroPartida` = '4');
+
+UPDATE `fifanovo`.`penalizacoes` SET `cartaoAmarelo` = '2' WHERE (`idpenalizacoes` = '1');
+UPDATE `fifanovo`.`penalizacoes` SET `cartaoAmarelo` = '2' WHERE (`idpenalizacoes` = '2');
+UPDATE `fifanovo`.`penalizacoes` SET `cartaoAmarelo` = '2' WHERE (`idpenalizacoes` = '3');
+
+INSERT INTO `fifanovo`.`penalizacoes` (`idpenalizacoes`, `arbitro`, `cartaoAmarelo`, `cartaoVermelho`, `time_nomedoTime`, `jogadores_idJogadores`, `faltasCometidas`, `faltasSofridas`, `expulsãoSegundoAmarelo`) VALUES ('5', 'Ghengis Khan', '0', '1', 'Portugal', '6', '0', '1', 'N');
+UPDATE `fifanovo`.`penalizacoes` SET `jogadores_idJogadores` = '5' WHERE (`idpenalizacoes` = '2');
+
+UPDATE `fifanovo`.`partida` SET `publico` = '18000', `estadio_nomeEstadio` = 'La Dernière Fois' WHERE (`numeroPartida` = '5');
+
+
+
+                                               /*INTRODUÇÃO DA VIEW 01*/
+
+
+
+CREATE VIEW vw01 AS SELECT s.chutesdirecaoGol, s.golContra, s.golsApurados, s.chutes, s.nomedoTime,
+p.numeroPartida, p.publico, p.impedimento, p.penalti, p.escanteio, p.fase, e.time_nomedoTime, e.cartaoAmarelo,
+e.cartaoVermelho, e.faltasCometidas, e.faltasSofridas, e.expulsãoSegundoAmarelo
+FROM sensor s
+RIGHT JOIN partida p
+ON p.numeroPartida = s.numeroPartida
+RIGHT JOIN penalizacoes e
+ON e.time_nomedoTime = s.nomedoTime;
+
+SELECT * FROM vw01;
+
+
+                                             /*INTRODUÇÃO DA VIEW 02* e ÚLTIMAS ALTERAÇÕES NO SQL/
+
+
+
+CREATE TABLE fases (
+fase TINYINT,
+partidas TINYINT,
+totalGols TINYINT,
+mediaGols DECIMAL GENERATED ALWAYS AS (totalGols / partidas) VIRTUAL,
+maisPontuou VARCHAR(45),
+quantGols TINYINT,
+PRIMARY KEY (fase)
+);
+
+INSERT INTO fases (fase, partidas, totalGols, maisPontuou, quantGols)
+VALUES 
+('1', '10', '50', 'Brasil', '20' ),
+('2', '6', '30', 'Portugal', '13'),
+('3', '3', '15', 'Brasil', '7');
+
+CREATE VIEW fasesCopa AS SELECT f.fase, f.partidas, f.totalGols, f.mediaGols, f.maisPontuou, f.quantGols
+FROM fases f
+JOIN time t
+ON t.nomedoTime = f.maisPontuou;
+
+SELECT * FROM fasesCopa;
+                                           
+                                  /* SQL Criação e imputação de privilégios a usuários SA2 PARTE 2*/
+
+
+CREATE USER administrador IDENTIFIED BY 'admin';
+CREATE USER padrao IDENTIFIED BY 'pad';
+CREATE USER restrito IDENTIFIED BY 'restrito';
+CREATE USER consultor IDENTIFIED BY 'consulta';
+
+GRANT ALL ON *.* TO administrador
+WITH GRANT OPTION;
+
+GRANT SELECT ON *.* TO consultor;
+
+GRANT SELECT, INSERT, CREATE ON *.* TO restrito;
+
+GRANT SELECT, INSERT, UPDATE, DELETE, EXECUTE, ALTER, CREATE ON *.* TO padrao;
